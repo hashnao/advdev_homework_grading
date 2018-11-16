@@ -39,7 +39,7 @@ pipeline {
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
-        image "registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7:v3.9"
+        image "docker-registry.default.svc:5000/gpte-jenkins/jenkins-agent-appdev:latest"
         resourceRequestMemory "1Gi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "500m"
