@@ -39,13 +39,18 @@ pipeline {
       inheritFrom "maven"
       containerTemplate {
         name "jnlp"
-        image "docker-registry.default.svc:5000/gpte-jenkins/jenkins-agent-appdev:latest"
+        image "${REGISTRY_URL}/${NAMESPACE_JENKINS}/${MAVEN_SLAVE_IMAGE}"
         resourceRequestMemory "1Gi"
         resourceLimitMemory "2Gi"
         resourceRequestCpu "500m"
         resourceLimitCpu "1"
       }
     }
+  }
+  environment {
+    REGISTRY_URL = "docker-registry.default.svc:5000"
+    NAMESPACE_JENKINS = "${GUID}-jenkins"
+    MAVEN_SLAVE_IMAGE = "${MAVEN_SLAVE_IMAGE}"
   }
   stages {
     stage('Get Student Homework Repo') {
