@@ -174,7 +174,7 @@ pipeline {
             error("MLBParks (Dev) returned unexpected name.")
           }
           // Test Dev ParksMap
-          def devParksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-dev.apps.${CLUSTER}/ws/appname/").trim()
+          def devParksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-dev.${CLUSTER}/ws/appname/").trim()
           echo "Dev ParksMap Route: " + devParksMapRoute
           // Check if the returned string contains "Parks Map (Dev)"
           if (devParksMapRoute.contains("ParksMap (Dev)")) {
@@ -213,7 +213,7 @@ pipeline {
           }
 
           // Test Blue ParksMap
-          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.apps.${CLUSTER}/ws/appname/").trim()
+          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
           // Check if the returned string contains "Parks Map (Blue)"
           echo "ParksMap Route: " + parksMapRoute
           if (parksMapRoute.contains("ParksMap (Blue)")) {
@@ -275,7 +275,7 @@ pipeline {
           }
 
           // Test ParksMap
-          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.apps.${CLUSTER}/ws/appname/").trim()
+          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
           // Check if the returned string contains "Parks Map (Green)"
           echo "ParksMap Route: " + parksMapRoute
           if (parksMapRoute.contains("ParksMap (Green)")) {
