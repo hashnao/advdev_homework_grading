@@ -12,7 +12,7 @@
 // * Create a persistent Jenkins in a separate project (e.g. gpte-jenkins)
 //
 // * Add self-provisioner role to the service account jenkins
-//   oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:gpte-jenkins:jenkins 
+//   oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:gpte-jenkins:jenkins
 //
 // * Create an Item of type Pipeline (Use name "HomeworkGrading")
 // * Create Five Parameters:
@@ -131,19 +131,82 @@ pipeline {
         stage('First Pipeline run for Nationalparks Service') {
           steps {
             echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
-            sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "nationalparks-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
         stage('First Pipeline run for MLBParks Service') {
           steps {
             echo "Executing Initial MLBParks Pipeline - BLUE deployment"
-            sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "mlbparks-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
         stage('First Pipeline run for ParksMap Service') {
           steps {
             echo "Executing Initial ParksMap Pipeline - BLUE deployment"
-            sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "parksman-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
       }
@@ -231,19 +294,82 @@ pipeline {
         stage('Second Pipeline run for Nationalparks Service') {
           steps {
             echo "Executing Second Nationalparks Pipeline - GREEN deployment"
-            sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "nationalparks-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
         stage('Second Pipeline run for National Parks Service') {
           steps {
             echo "Executing Second National Parks Pipeline - GREEN deployment"
-            sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "mlbparks-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
         stage('Second Pipeline run for ParksMap Service') {
           steps {
             echo "Executing Second ParksMap Pipeline - GREEN deployment"
-            sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+            script {
+              openshift.withCluster() {
+                openshift.withProject("${GUID}-jenkins") {
+                  def bc = openshift.selector("bc", "parksmap-pipeline")
+                  def result = bc.logs("-f")
+                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
+                  def buildSelector = bc.related("builds")
+                  // Throw exception after 5 minutes
+                  timeout(30) {
+                    buildSelector.untilEach(1) {
+                      return (it.object().status.phase == "Complete")
+                    }
+                  }
+                  echo "Builds have been completed: ${buildSelector.names()}"
+                  // Show exactly what oc command was executed.
+                  echo "Logs executed: ${result.actions[0].cmd}"
+                  // Show the standard output and standard error of the command.
+                  def logsString = result.actions[0].out
+                  def logsErr = result.actions[0].err
+                }
+              }
+            }
           }
         }
       }
