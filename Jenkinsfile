@@ -135,6 +135,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "nationalparks-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
@@ -162,6 +163,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "mlbparks-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
@@ -189,6 +191,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "parksman-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
@@ -298,6 +301,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "nationalparks-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
@@ -325,6 +329,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "mlbparks-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
@@ -352,6 +357,7 @@ pipeline {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "parksmap-pipeline")
+                  bc.startBuild()
                   def result = bc.logs("-f")
                   // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
