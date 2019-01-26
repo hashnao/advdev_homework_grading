@@ -176,7 +176,7 @@ pipeline {
             script {
               openshift.withCluster() {
                 openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "parksman-pipeline")
+                  def bc = openshift.selector("bc", "parksmap-pipeline")
                   bc.startBuild()
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
