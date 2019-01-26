@@ -136,8 +136,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "nationalparks-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -146,11 +144,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
@@ -164,8 +157,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "mlbparks-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -174,11 +165,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
@@ -192,8 +178,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "parksman-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -202,11 +186,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
@@ -302,8 +281,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "nationalparks-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -312,11 +289,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
@@ -330,8 +302,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "mlbparks-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -340,11 +310,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
@@ -358,8 +323,6 @@ pipeline {
                 openshift.withProject("${GUID}-jenkins") {
                   def bc = openshift.selector("bc", "parksmap-pipeline")
                   bc.startBuild()
-                  def result = bc.logs("-f")
-                  // Filter non-BuildConfig objects and create selector which will find builds related to the BuildConfig
                   def buildSelector = bc.related("builds")
                   // Throw exception after 5 minutes
                   timeout(30) {
@@ -368,11 +331,6 @@ pipeline {
                     }
                   }
                   echo "Builds have been completed: ${buildSelector.names()}"
-                  // Show exactly what oc command was executed.
-                  echo "Logs executed: ${result.actions[0].cmd}"
-                  // Show the standard output and standard error of the command.
-                  def logsString = result.actions[0].out
-                  def logsErr = result.actions[0].err
                 }
               }
             }
