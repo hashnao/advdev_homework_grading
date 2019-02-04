@@ -133,34 +133,36 @@ pipeline {
       when {
         environment name: 'PARALLEL', value: 'true'
       }
-      stage("First Pipeline Runs for Nationalparks Service") {
-        steps {
-          echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
-          sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
-          // In the Jenkins pipeline, pod replica scales down to 0.
-          // Set replica to 1 for integration test in the next stage.
-          sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
-          sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
+      parallel {
+        stage("First Pipeline Runs for Nationalparks Service") {
+          steps {
+            echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
+            sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+            // In the Jenkins pipeline, pod replica scales down to 0.
+            // Set replica to 1 for integration test in the next stage.
+            sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
+            sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
+          }
         }
-      }
-      stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
-        steps {
-          echo "Executing Initial MLBParks Pipeline - BLUE deployment"
-          sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
-          // In the Jenkins pipeline, pod replica scales down to 0.
-          // Set replica to 1 for integration test in the next stage.
-          sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
-          sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
+        stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
+          steps {
+            echo "Executing Initial MLBParks Pipeline - BLUE deployment"
+            sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+            // In the Jenkins pipeline, pod replica scales down to 0.
+            // Set replica to 1 for integration test in the next stage.
+            sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
+            sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
+          }
         }
-      }
-      stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
-        steps {
-          echo "Executing Initial ParksMap Pipeline - BLUE deployment"
-          sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
-          // In the Jenkins pipeline, pod replica scales down to 0.
-          // Set replica to 1 for integration test in the next stage.
-          sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
-          sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
+        stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
+          steps {
+            echo "Executing Initial ParksMap Pipeline - BLUE deployment"
+            sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+            // In the Jenkins pipeline, pod replica scales down to 0.
+            // Set replica to 1 for integration test in the next stage.
+            sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
+            sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
+          }
         }
       }
     }
@@ -275,22 +277,24 @@ pipeline {
       when {
         environment name: 'PARALLEL', value: 'true'
       }
-      stage("First Pipeline Runs for Nationalparks Service") {
-        steps {
-          echo "Executing Initial Nationalparks Pipeline - GREEN deployment"
-          sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+      parallel {
+        stage("First Pipeline Runs for Nationalparks Service") {
+          steps {
+            echo "Executing Initial Nationalparks Pipeline - GREEN deployment"
+            sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+          }
         }
-      }
-      stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
-        steps {
-          echo "Executing Initial MLBParks Pipeline - GREEN deployment"
-          sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+        stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
+          steps {
+            echo "Executing Initial MLBParks Pipeline - GREEN deployment"
+            sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+          }
         }
-      }
-      stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
-        steps {
-          echo "Executing Initial ParksMap Pipeline - GREEN deployment"
-          sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+        stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
+          steps {
+            echo "Executing Initial ParksMap Pipeline - GREEN deployment"
+            sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+          }
         }
       }
     }
