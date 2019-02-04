@@ -162,7 +162,7 @@ pipeline {
             sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
             // In the Jenkins pipeline, pod replica scales down to 0.
             // Set replica to 1 for integration test in the next stage.
-            sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
+            sh "oc scale dc/parksmap --replicas=1 -n ${GUID}-parks-dev"
             sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
             sh "sleep 20"
           }
