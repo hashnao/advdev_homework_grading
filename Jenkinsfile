@@ -271,6 +271,7 @@ pipeline {
             }
 
             // Test Blue ParksMap
+            sh "sleep 20"
             def parksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
             // Check if the returned string contains "Parks Map (Blue)"
             echo "ParksMap Route: " + parksMapRoute
@@ -353,6 +354,7 @@ pipeline {
             }
 
             // Test ParksMap
+            sh "sleep 20"
             def parksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
             // Check if the returned string contains "Parks Map (Green)"
             echo "ParksMap Route: " + parksMapRoute
