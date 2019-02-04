@@ -128,13 +128,13 @@ pipeline {
         sh "./Infrastructure/bin/reset_prod.sh ${GUID}"
       }
     }
-    stage("First Pipeline Runs (from Green to Blue) in parallel") {
+    stage("Switch Green to Blue in parallel") {
       failFast true
       when {
         environment name: 'PARALLEL', value: 'true'
       }
       parallel {
-        stage("First Pipeline Runs for Nationalparks Service") {
+        stage("Run pipeline for Nationalparks Service") {
           steps {
             echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
             sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
@@ -145,7 +145,7 @@ pipeline {
             sh "sleep 20"
           }
         }
-        stage("First Pipeline Runs for MLBParks Service") {
+        stage("Run Pipeline for MLBParks Service") {
           steps {
             echo "Executing Initial MLBParks Pipeline - BLUE deployment"
             sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
@@ -156,7 +156,7 @@ pipeline {
             sh "sleep 20"
           }
         }
-        stage("First Pipeline Runs for ParksMap Service") {
+        stage("Run Pipeline for ParksMap Service") {
           steps {
             echo "Executing Initial ParksMap Pipeline - BLUE deployment"
             sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
@@ -169,12 +169,12 @@ pipeline {
         }
       }
     }
-    stage("First Pipeline Runs (from Green to Blue) in sequential order") {
+    stage("Switch Green to Blue in sequential order") {
       when {
         environment name: 'PARALLEL', value: 'false'
       }
       steps {
-        echo "Executing Second Nationalparks Pipeline - BLUE deployment"
+        echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
         sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
         // In the Jenkins pipeline, pod replica scales down to 0.
         // Set replica to 1 for integration test in the next stage.
@@ -182,7 +182,7 @@ pipeline {
         sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
         sh "sleep 20"
 
-        echo "Executing Second National Parks Pipeline - BLUE deployment"
+        echo "Executing Initial National Parks Pipeline - BLUE deployment"
         sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
         // In the Jenkins pipeline, pod replica scales down to 0.
         // Set replica to 1 for integration test in the next stage.
@@ -190,7 +190,7 @@ pipeline {
         sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
         sh "sleep 20"
 
-        echo "Executing Second ParksMap Pipeline - BLUE deployment"
+        echo "Executing Initial ParksMap Pipeline - BLUE deployment"
         sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
         // In the Jenkins pipeline, pod replica scales down to 0.
         // Set replica to 1 for integration test in the next stage.
@@ -254,6 +254,7 @@ pipeline {
             echo "Blue National Parks Service: " + blueNationalParksSvc
             if (blueNationalParksSvc.contains("National Parks (Blue)")) {
               echo "*** National Parks (Blue) validated successfully."
+              true
             }
             else {
               error("National Parks (Blue) returned unexpected name.")
@@ -265,6 +266,7 @@ pipeline {
             echo "Blue MLB Parks Service: " + blueMLBParksSvc
             if (blueMLBParksSvc.contains("MLB Parks (Blue)")) {
               echo "*** MLB Parks (Blue) validated successfully."
+              true
             }
             else {
               error("MLB Parks (Blue) returned unexpected name.")
@@ -277,6 +279,7 @@ pipeline {
             echo "ParksMap Route: " + parksMapRoute
             if (parksMapRoute.contains("ParksMap (Blue)")) {
               echo "*** ParksMap (Blue) validated successfully."
+              true
             }
             else {
               error("ParksMap (Blue) returned unexpected name.")
@@ -285,25 +288,25 @@ pipeline {
         }
       }
     }
-    stage("Second Pipeline Runs (from Blue to Green) in parallel") {
+    stage("Switch Blue to Green in parallel") {
       failFast true
       when {
         environment name: 'PARALLEL', value: 'true'
       }
       parallel {
-        stage('Second Pipeline run for Nationalparks Service') {
+        stage('Run Pipeline for Nationalparks Service') {
           steps {
             echo "Executing Second Nationalparks Pipeline - GREEN deployment"
             sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
           }
         }
-        stage('Second Pipeline run for National Parks Service') {
+        stage('Run Pipeline for National Parks Service') {
           steps {
             echo "Executing Second National Parks Pipeline - GREEN deployment"
             sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
           }
         }
-        stage('Second Pipeline run for ParksMap Service') {
+        stage('Run Pipeline for ParksMap Service') {
           steps {
             echo "Executing Second ParksMap Pipeline - GREEN deployment"
             sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
@@ -311,7 +314,7 @@ pipeline {
         }
       }
     }
-    stage("Second Pipeline Runs (from Blue to Green) in sequential order") {
+    stage("Switch Blue to Green in sequential order") {
       when {
         environment name: 'PARALLEL', value: 'false'
       }
