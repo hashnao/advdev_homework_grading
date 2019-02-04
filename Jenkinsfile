@@ -189,7 +189,7 @@ pipeline {
         sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
         // In the Jenkins pipeline, pod replica scales down to 0.
         // Set replica to 1 for integration test in the next stage.
-        sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
+        sh "oc scale dc/parksmap --replicas=1 -n ${GUID}-parks-dev"
         sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
       }
     }
@@ -241,6 +241,7 @@ pipeline {
           echo "Blue National Parks Service: " + blueNationalParksSvc
           if (blueNationalParksSvc.contains("National Parks (Blue)")) {
             echo "*** National Parks (Blue) validated successfully."
+            sh "oc scale dc/nationalparks --replicas=0 -n ${GUID}-parks-dev"
           }
           else {
             error("National Parks (Blue) returned unexpected name.")
@@ -252,6 +253,7 @@ pipeline {
           echo "Blue MLB Parks Service: " + blueMLBParksSvc
           if (blueMLBParksSvc.contains("MLB Parks (Blue)")) {
             echo "*** MLB Parks (Blue) validated successfully."
+            sh "oc scale dc/mlbparks --replicas=0 -n ${GUID}-parks-dev"
           }
           else {
             error("MLB Parks (Blue) returned unexpected name.")
@@ -263,6 +265,7 @@ pipeline {
           echo "ParksMap Route: " + parksMapRoute
           if (parksMapRoute.contains("ParksMap (Blue)")) {
             echo "*** ParksMap (Blue) validated successfully."
+        sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
           }
           else {
             error("ParksMap (Blue) returned unexpected name.")
