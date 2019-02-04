@@ -28,6 +28,8 @@
 //   - DELETE (type Boolean): Default: true
 //                            If true will delete all created projects
 //                            after a successful run.
+//   - PARALLEL (type Boolean): Default: true
+//                            If true will run Jenkins pipeline builds for apps in parallel.
 // * Use https://github.com/wkulhanek/advdev_homework_grading as the Git Repo
 //   and 'Jenkinsfile' as the Jenkinsfile.
 
@@ -63,6 +65,7 @@ pipeline {
              "*** CLUSTER:      ${CLUSTER}\n" +
              "*** SETUP:        ${SETUP}\n" +
              "*** DELETE:       ${DELETE}\n" +
+             "*** PARALLEL:     ${PARALLEL}\n" +
              "*******************************************************"
 
         echo "Cloning Infrastructure Project"
@@ -125,72 +128,69 @@ pipeline {
         sh "./Infrastructure/bin/reset_prod.sh ${GUID}"
       }
     }
-    stage("First Pipeline Runs (from Green to Blue)") {
+    stage("First Pipeline Runs (from Green to Blue) in parallel") {
       failFast true
-      parallel {
-        stage('First Pipeline run for Nationalparks Service') {
-          steps {
-            echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "nationalparks-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      when {
+        environment name: 'PARALLEL', value: 'true'
+      }
+      stage("First Pipeline Runs for Nationalparks Service") {
+        steps {
+          echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
+          sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+          // In the Jenkins pipeline, pod replica scales down to 0.
+          // Set replica to 1 for integration test in the next stage.
+          sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
+          sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
         }
-        stage('First Pipeline run for MLBParks Service') {
-          steps {
-            echo "Executing Initial MLBParks Pipeline - BLUE deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "mlbparks-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      }
+      stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
+        steps {
+          echo "Executing Initial MLBParks Pipeline - BLUE deployment"
+          sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+          // In the Jenkins pipeline, pod replica scales down to 0.
+          // Set replica to 1 for integration test in the next stage.
+          sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
+          sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
         }
-        stage('First Pipeline run for ParksMap Service') {
-          steps {
-            echo "Executing Initial ParksMap Pipeline - BLUE deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "parksmap-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      }
+      stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
+        steps {
+          echo "Executing Initial ParksMap Pipeline - BLUE deployment"
+          sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+          // In the Jenkins pipeline, pod replica scales down to 0.
+          // Set replica to 1 for integration test in the next stage.
+          sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
+          sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
         }
+      }
+    }
+    stage("First Pipeline Runs (from Green to Blue) in sequential order") {
+      when {
+        environment name: 'PARALLEL', value: 'false'
+      }
+      steps {
+        echo "Executing Second Nationalparks Pipeline - BLUE deployment"
+        sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+        // In the Jenkins pipeline, pod replica scales down to 0.
+        // Set replica to 1 for integration test in the next stage.
+        sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
+        sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
+      }
+      steps {
+        echo "Executing Second National Parks Pipeline - BLUE deployment"
+        sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+        // In the Jenkins pipeline, pod replica scales down to 0.
+        // Set replica to 1 for integration test in the next stage.
+        sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
+        sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
+      }
+      steps {
+        echo "Executing Second ParksMap Pipeline - BLUE deployment"
+        sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
+        // In the Jenkins pipeline, pod replica scales down to 0.
+        // Set replica to 1 for integration test in the next stage.
+        sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
+        sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
       }
     }
     stage('Test Parksmap in Dev') {
@@ -270,72 +270,45 @@ pipeline {
         }
       }
     }
-    stage("Second Pipeline Runs (from Blue to Green)") {
+    stage("First Pipeline Runs (from Blue to Green) in parallel") {
       failFast true
-      parallel {
-        stage('Second Pipeline run for Nationalparks Service') {
-          steps {
-            echo "Executing Second Nationalparks Pipeline - GREEN deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "nationalparks-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      when {
+        environment name: 'PARALLEL', value: 'true'
+      }
+      stage("First Pipeline Runs for Nationalparks Service") {
+        steps {
+          echo "Executing Initial Nationalparks Pipeline - GREEN deployment"
+          sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
         }
-        stage('Second Pipeline run for National Parks Service') {
-          steps {
-            echo "Executing Second National Parks Pipeline - GREEN deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "mlbparks-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      }
+      stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
+        steps {
+          echo "Executing Initial MLBParks Pipeline - GREEN deployment"
+          sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
         }
-        stage('Second Pipeline run for ParksMap Service') {
-          steps {
-            echo "Executing Second ParksMap Pipeline - GREEN deployment"
-            script {
-              openshift.withCluster() {
-                openshift.withProject("${GUID}-jenkins") {
-                  def bc = openshift.selector("bc", "parksmap-pipeline")
-                  bc.startBuild()
-                  def buildSelector = bc.related("builds")
-                  // Throw exception after 5 minutes
-                  timeout(30) {
-                    buildSelector.untilEach(1) {
-                      return (it.object().status.phase == "Complete")
-                    }
-                  }
-                  echo "Builds have been completed: ${buildSelector.names()}"
-                }
-              }
-            }
-          }
+      }
+      stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
+        steps {
+          echo "Executing Initial ParksMap Pipeline - GREEN deployment"
+          sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
         }
+      }
+    }
+    stage("First Pipeline Runs (from Blue to Green) in sequential order") {
+      when {
+        environment name: 'PARALLEL', value: 'false'
+      }
+      steps {
+        echo "Executing Second Nationalparks Pipeline - GREEN deployment"
+        sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
+      }
+      steps {
+        echo "Executing Second National Parks Pipeline - GREEN deployment"
+        sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
+      }
+      steps {
+        echo "Executing Second ParksMap Pipeline - GREEN deployment"
+        sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
       }
     }
     stage('Test Green Parksmap in Prod') {
