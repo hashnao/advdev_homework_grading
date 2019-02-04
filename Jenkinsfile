@@ -142,6 +142,7 @@ pipeline {
             // Set replica to 1 for integration test in the next stage.
             sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
             sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
+            sh "sleep 20"
           }
         }
         stage("First Pipeline Runs for MLBParks Service") {
@@ -152,6 +153,7 @@ pipeline {
             // Set replica to 1 for integration test in the next stage.
             sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
             sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
+            sh "sleep 20"
           }
         }
         stage("First Pipeline Runs for ParksMap Service") {
@@ -162,6 +164,7 @@ pipeline {
             // Set replica to 1 for integration test in the next stage.
             sh "oc scale dc/parksMapRoute --replicas=1 -n ${GUID}-parks-dev"
             sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
+            sh "sleep 20"
           }
         }
       }
@@ -177,6 +180,7 @@ pipeline {
         // Set replica to 1 for integration test in the next stage.
         sh "oc scale dc/nationalparks --replicas=1 -n ${GUID}-parks-dev"
         sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
+        sh "sleep 20"
 
         echo "Executing Second National Parks Pipeline - BLUE deployment"
         sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
@@ -184,6 +188,7 @@ pipeline {
         // Set replica to 1 for integration test in the next stage.
         sh "oc scale dc/mlbparks --replicas=1 -n ${GUID}-parks-dev"
         sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
+        sh "sleep 20"
 
         echo "Executing Second ParksMap Pipeline - BLUE deployment"
         sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
@@ -191,42 +196,48 @@ pipeline {
         // Set replica to 1 for integration test in the next stage.
         sh "oc scale dc/parksmap --replicas=1 -n ${GUID}-parks-dev"
         sh "oc rollout status dc/parksmap -w -n ${GUID}-parks-dev"
+        sh "sleep 20"
       }
     }
     stage('Test Parksmap in Dev') {
       steps {
         echo "Testing Parksmap Dev Application"
         script {
-          // Test Dev Nationalparks
-          def devNationalParksSvc = sh(returnStdout: true, script: "curl nationalparks.${GUID}-parks-dev.svc.cluster.local:8080/ws/info/").trim()
-          echo "Dev National Parks Service: " + devNationalParksSvc
-          // Check if the returned string contains "National Parks (Dev)"
-          if (devNationalParksSvc.contains("National Parks (Dev)")) {
-            echo "*** National Parks (Dev) validated successfully."
-          }
-          else {
-            error("National Parks (Dev) returned unexpected name.")
-          }
+          waitUntil() {
+            // Test Dev Nationalparks
+            def devNationalParksSvc = sh(returnStdout: true, script: "curl -s nationalparks.${GUID}-parks-dev.svc.cluster.local:8080/ws/info/").trim()
+            echo "Dev National Parks Service: " + devNationalParksSvc
+            // Check if the returned string contains "National Parks (Dev)"
+            if (devNationalParksSvc.contains("National Parks (Dev)")) {
+              echo "*** National Parks (Dev) validated successfully."
+              sh "oc scale dc/nationalparks --replicas=0 -n ${GUID}-parks-dev"
+            }
+            else {
+              error("National Parks (Dev) returned unexpected name.")
+            }
 
-          // Test Dev MLBParks
-          def devMLBParksSvc = sh(returnStdout: true, script: "curl mlbparks.${GUID}-parks-dev.svc.cluster.local:8080/ws/info/").trim()
-          echo "Dev MLB Parks Service: " + devMLBParksSvc
-          // Check if the returned string contains "MLB Parks (Dev)"
-          if (devMLBParksSvc.contains("MLB Parks (Dev)")) {
-            echo "*** MLB Parks (Dev) validated successfully."
-          }
-          else {
-            error("MLBParks (Dev) returned unexpected name.")
-          }
-          // Test Dev ParksMap
-          def devParksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-dev.${CLUSTER}/ws/appname/").trim()
-          echo "Dev ParksMap Route: " + devParksMapRoute
-          // Check if the returned string contains "Parks Map (Dev)"
-          if (devParksMapRoute.contains("ParksMap (Dev)")) {
-            echo "*** Parks Map (Dev) validated successfully."
-          }
-          else {
-            error("ParksMap (Dev) returned unexpected name.")
+            // Test Dev MLBParks
+            def devMLBParksSvc = sh(returnStdout: true, script: "curl -s mlbparks.${GUID}-parks-dev.svc.cluster.local:8080/ws/info/").trim()
+            echo "Dev MLB Parks Service: " + devMLBParksSvc
+            // Check if the returned string contains "MLB Parks (Dev)"
+            if (devMLBParksSvc.contains("MLB Parks (Dev)")) {
+              echo "*** MLB Parks (Dev) validated successfully."
+              sh "oc scale dc/mlbparks --replicas=0 -n ${GUID}-parks-dev"
+            }
+            else {
+              error("MLBParks (Dev) returned unexpected name.")
+            }
+            // Test Dev ParksMap
+            def devParksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-dev.${CLUSTER}/ws/appname/").trim()
+            echo "Dev ParksMap Route: " + devParksMapRoute
+            // Check if the returned string contains "Parks Map (Dev)"
+            if (devParksMapRoute.contains("ParksMap (Dev)")) {
+              echo "*** Parks Map (Dev) validated successfully."
+              sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
+            }
+            else {
+              error("ParksMap (Dev) returned unexpected name.")
+            }
           }
         }
       }
@@ -235,40 +246,39 @@ pipeline {
       steps {
         echo "Testing Prod Services (BLUE)"
         script {
-          // Test Blue Nationalparks:
-          def blueNationalParksSvc = sh(returnStdout: true, script: "curl nationalparks-blue.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
-          // Check if the returned string contains "National Parks (Blue)"
-          echo "Blue National Parks Service: " + blueNationalParksSvc
-          if (blueNationalParksSvc.contains("National Parks (Blue)")) {
-            echo "*** National Parks (Blue) validated successfully."
-            sh "oc scale dc/nationalparks --replicas=0 -n ${GUID}-parks-dev"
-          }
-          else {
-            error("National Parks (Blue) returned unexpected name.")
-          }
+          waitUntil() {
+            // Test Blue Nationalparks:
+            def blueNationalParksSvc = sh(returnStdout: true, script: "curl -s nationalparks-blue.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
+            // Check if the returned string contains "National Parks (Blue)"
+            echo "Blue National Parks Service: " + blueNationalParksSvc
+            if (blueNationalParksSvc.contains("National Parks (Blue)")) {
+              echo "*** National Parks (Blue) validated successfully."
+            }
+            else {
+              error("National Parks (Blue) returned unexpected name.")
+            }
 
-          // Test Blue MLBParks:
-          def blueMLBParksSvc = sh(returnStdout: true, script: "curl mlbparks-blue.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
-          // Check if the returned string contains "MLB Parks (Blue)"
-          echo "Blue MLB Parks Service: " + blueMLBParksSvc
-          if (blueMLBParksSvc.contains("MLB Parks (Blue)")) {
-            echo "*** MLB Parks (Blue) validated successfully."
-            sh "oc scale dc/mlbparks --replicas=0 -n ${GUID}-parks-dev"
-          }
-          else {
-            error("MLB Parks (Blue) returned unexpected name.")
-          }
+            // Test Blue MLBParks:
+            def blueMLBParksSvc = sh(returnStdout: true, script: "curl -s mlbparks-blue.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
+            // Check if the returned string contains "MLB Parks (Blue)"
+            echo "Blue MLB Parks Service: " + blueMLBParksSvc
+            if (blueMLBParksSvc.contains("MLB Parks (Blue)")) {
+              echo "*** MLB Parks (Blue) validated successfully."
+            }
+            else {
+              error("MLB Parks (Blue) returned unexpected name.")
+            }
 
-          // Test Blue ParksMap
-          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
-          // Check if the returned string contains "Parks Map (Blue)"
-          echo "ParksMap Route: " + parksMapRoute
-          if (parksMapRoute.contains("ParksMap (Blue)")) {
-            echo "*** ParksMap (Blue) validated successfully."
-            sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
-          }
-          else {
-            error("ParksMap (Blue) returned unexpected name.")
+            // Test Blue ParksMap
+            def parksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
+            // Check if the returned string contains "Parks Map (Blue)"
+            echo "ParksMap Route: " + parksMapRoute
+            if (parksMapRoute.contains("ParksMap (Blue)")) {
+              echo "*** ParksMap (Blue) validated successfully."
+            }
+            else {
+              error("ParksMap (Blue) returned unexpected name.")
+            }
           }
         }
       }
@@ -318,37 +328,39 @@ pipeline {
       steps {
         echo "Testing Prod Parksmap Application (GREEN)"
         script {
-          // Test Green Nationalparks:
-          def greenNationalParksSvc = sh(returnStdout: true, script: "curl nationalparks-green.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
-          // Check if the returned string contains "National Parks (Green)"
-          echo "Green National Parks Service: " + greenNationalParksSvc
-          if (greenNationalParksSvc.contains("National Parks (Green)")) {
-            echo "*** National Parks (Green) validated successfully."
-          }
-          else {
-            error("National Parks (Green) returned unexpected name.")
-          }
+          waitUntil() {
+            // Test Green Nationalparks:
+            def greenNationalParksSvc = sh(returnStdout: true, script: "curl -s nationalparks-green.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
+            // Check if the returned string contains "National Parks (Green)"
+            echo "Green National Parks Service: " + greenNationalParksSvc
+            if (greenNationalParksSvc.contains("National Parks (Green)")) {
+              echo "*** National Parks (Green) validated successfully."
+            }
+            else {
+              error("National Parks (Green) returned unexpected name.")
+            }
 
-          // Test Green MLBParks:
-          def greenMLBParksSvc = sh(returnStdout: true, script: "curl mlbparks-green.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
-          // Check if the returned string contains "MLB Parks (Blue)"
-          echo "Green MLB Parks Service: " + greenMLBParksSvc
-          if (greenMLBParksSvc.contains("MLB Parks (Green)")) {
-            echo "*** MLB Parks (Green) validated successfully."
-          }
-          else {
-            error("MLB Parks (Green) returned unexpected name.")
-          }
+            // Test Green MLBParks:
+            def greenMLBParksSvc = sh(returnStdout: true, script: "curl -s mlbparks-green.${GUID}-parks-prod.svc.cluster.local:8080/ws/info/").trim()
+            // Check if the returned string contains "MLB Parks (Blue)"
+            echo "Green MLB Parks Service: " + greenMLBParksSvc
+            if (greenMLBParksSvc.contains("MLB Parks (Green)")) {
+              echo "*** MLB Parks (Green) validated successfully."
+            }
+            else {
+              error("MLB Parks (Green) returned unexpected name.")
+            }
 
-          // Test ParksMap
-          def parksMapRoute = sh(returnStdout: true, script: "curl parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
-          // Check if the returned string contains "Parks Map (Green)"
-          echo "ParksMap Route: " + parksMapRoute
-          if (parksMapRoute.contains("ParksMap (Green)")) {
-            echo "*** ParksMap (Green) validated successfully."
-          }
-          else {
-            error("ParksMap (Green) returned unexpected name.")
+            // Test ParksMap
+            def parksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-prod.${CLUSTER}/ws/appname/").trim()
+            // Check if the returned string contains "Parks Map (Green)"
+            echo "ParksMap Route: " + parksMapRoute
+            if (parksMapRoute.contains("ParksMap (Green)")) {
+              echo "*** ParksMap (Green) validated successfully."
+            }
+            else {
+              error("ParksMap (Green) returned unexpected name.")
+            }
           }
         }
       }
