@@ -211,8 +211,8 @@ pipeline {
             if (devNationalParksSvc.contains("National Parks (Dev)")) {
               echo "*** National Parks (Dev) validated successfully."
               sh "oc scale dc/nationalparks --replicas=0 -n ${GUID}-parks-dev"
-            }
-            else {
+              true
+            } else {
               error("National Parks (Dev) returned unexpected name.")
             }
 
@@ -223,10 +223,11 @@ pipeline {
             if (devMLBParksSvc.contains("MLB Parks (Dev)")) {
               echo "*** MLB Parks (Dev) validated successfully."
               sh "oc scale dc/mlbparks --replicas=0 -n ${GUID}-parks-dev"
-            }
-            else {
+              true
+            } else {
               error("MLBParks (Dev) returned unexpected name.")
             }
+
             // Test Dev ParksMap
             def devParksMapRoute = sh(returnStdout: true, script: "curl -s parksmap-${GUID}-parks-dev.${CLUSTER}/ws/appname/").trim()
             echo "Dev ParksMap Route: " + devParksMapRoute
@@ -234,8 +235,8 @@ pipeline {
             if (devParksMapRoute.contains("ParksMap (Dev)")) {
               echo "*** Parks Map (Dev) validated successfully."
               sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
-            }
-            else {
+              true
+            } else {
               error("ParksMap (Dev) returned unexpected name.")
             }
           }
