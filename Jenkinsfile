@@ -144,7 +144,7 @@ pipeline {
             sh "oc rollout status dc/nationalparks -w -n ${GUID}-parks-dev"
           }
         }
-        stage("First Pipeline Runs (from Green to Blue) for MLBParks Service") {
+        stage("First Pipeline Runs for MLBParks Service") {
           steps {
             echo "Executing Initial MLBParks Pipeline - BLUE deployment"
             sh "oc start-build --wait=true mlbparks-pipeline -n ${GUID}-jenkins"
@@ -154,7 +154,7 @@ pipeline {
             sh "oc rollout status dc/mlbparks -w -n ${GUID}-parks-dev"
           }
         }
-        stage("First Pipeline Runs (from Green to Blue) for ParksMap Service") {
+        stage("First Pipeline Runs for ParksMap Service") {
           steps {
             echo "Executing Initial ParksMap Pipeline - BLUE deployment"
             sh "oc start-build --wait=true parksmap-pipeline -n ${GUID}-jenkins"
@@ -265,7 +265,7 @@ pipeline {
           echo "ParksMap Route: " + parksMapRoute
           if (parksMapRoute.contains("ParksMap (Blue)")) {
             echo "*** ParksMap (Blue) validated successfully."
-        sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
+            sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
           }
           else {
             error("ParksMap (Blue) returned unexpected name.")
