@@ -136,6 +136,8 @@ pipeline {
       parallel {
         stage("Run pipeline for Nationalparks Service") {
           steps {
+            echo "Starting MongoDB"
+            sh "oc scale dc/mongodb --replicas=1 -n ${GUID}-parks-dev"
             echo "Executing Initial Nationalparks Pipeline - BLUE deployment"
             sh "oc start-build --wait=true nationalparks-pipeline -n ${GUID}-jenkins"
             // In the Jenkins pipeline, pod replica scales down to 0.
@@ -235,6 +237,7 @@ pipeline {
             if (devParksMapRoute.contains("ParksMap (Dev)")) {
               echo "*** Parks Map (Dev) validated successfully."
               sh "oc scale dc/parksmap --replicas=0 -n ${GUID}-parks-dev"
+              sh "oc scale dc/mongodb --replicas=0 -n ${GUID}-parks-dev"
               true
             } else {
               error("ParksMap (Dev) returned unexpected name.")
